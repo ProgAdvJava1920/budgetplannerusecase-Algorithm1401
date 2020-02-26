@@ -22,8 +22,8 @@ public final class BudgetPlannerImporter {
         List<Account> fileAccounts = new ArrayList<>();
         try(BufferedReader reader = new BufferedReader(new FileReader(fileLocation))) {
 
+            reader.readLine();
             String line = reader.readLine();
-            line = reader.readLine();
             while(line!=null) {
 
                 String[] lineValues = line.split(",");
@@ -46,20 +46,20 @@ public final class BudgetPlannerImporter {
         return fileAccounts;
     }
 
-    public static Optional<Account> accountsContainsIBAN(Collection<Account> accountsCollection, String IBAN){
+    private static Optional<Account> accountsContainsIBAN(Collection<Account> accountsCollection, String IBAN){
         return accountsCollection.stream()
                 .filter(account -> account.getIBAN().equals(IBAN))
                 .findFirst();
     }
 
-    public static Account readAccount(String[] lineValues) {
+    private static Account readAccount(String[] lineValues) {
         String accountName = lineValues[0];
         String bankAccount = lineValues[1];
 
         return new Account(bankAccount, accountName, new ArrayList<>(Arrays.asList(readPayment(lineValues))));
     }
 
-    public static Payment readPayment(String[] lineValues) {
+    private static Payment readPayment(String[] lineValues) {
         String counterAccount = lineValues[2];
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("E MMM dd HH:mm:ss zzz yyyy", Locale.ENGLISH);
         LocalDateTime transactionTime = LocalDateTime.parse(lineValues[3], formatter);
