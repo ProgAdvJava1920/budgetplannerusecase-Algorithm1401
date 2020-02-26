@@ -6,10 +6,10 @@ import lombok.SneakyThrows;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import java.lang.reflect.Array;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Stream;
 
 public class BudgetPlannerImporterTests {
 
@@ -17,10 +17,15 @@ public class BudgetPlannerImporterTests {
     @SneakyThrows
     public void shouldCreateAListOfAccounts() {
 
-        BudgetPlannerFeeder feeder = new BudgetPlannerFeeder();
-        feeder.faker = new Faker();
-        feeder.myAccountName = "Fien";
-        feeder.myIBANNumber = "BE69771770897312";
+        BudgetPlannerFeeder fienFeeder = new BudgetPlannerFeeder();
+        BudgetPlannerFeeder janFeeder = new BudgetPlannerFeeder();
+        fienFeeder.faker = new Faker();
+        fienFeeder.myAccountName = "Fien";
+        fienFeeder.myIBANNumber = "BE69771770897312";
+
+        janFeeder.faker = new Faker();
+        janFeeder.myAccountName = "Jan";
+        janFeeder.myIBANNumber = "BE69771770897313";
 
         String fileLocation = "src/test/resources/account_payments.csv";
 
@@ -29,9 +34,11 @@ public class BudgetPlannerImporterTests {
         saveFileMethod.setAccessible(true);
         datalinesMethod.setAccessible(true);
 
-        Object returnedDataLines = datalinesMethod.invoke(feeder, 5);
-        String[] dataLines = (String[]) returnedDataLines;
-        saveFileMethod.invoke(feeder, fileLocation, dataLines);
+        String[] returnedDataLines = (String[]) datalinesMethod.invoke(fienFeeder, 5);
+        String[] returnedDataLinesJan = (String[]) datalinesMethod.invoke(janFeeder, 5);
+        String[] dataLines = Stream.concat(Arrays.stream(returnedDataLines), Arrays.stream(returnedDataLinesJan))
+                .toArray(String[]::new);
+        saveFileMethod.invoke(fienFeeder, fileLocation, dataLines);
 
         List<Account> accounts = BudgetPlannerImporter.importPayments(fileLocation);
 

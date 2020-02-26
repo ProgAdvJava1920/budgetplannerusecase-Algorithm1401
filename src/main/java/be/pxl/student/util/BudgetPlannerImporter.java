@@ -20,33 +20,35 @@ public final class BudgetPlannerImporter {
 
     public static List<Account> importPayments(String fileLocation) {
         List<Account> fileAccounts = new ArrayList<>();
-        try(BufferedReader reader = new BufferedReader(new FileReader(fileLocation))) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(fileLocation))) {
 
             reader.readLine();
             String line = reader.readLine();
-            while(line!=null) {
+            while (line != null) {
 
                 String[] lineValues = line.split(",");
-                Optional<Account> optionalExistingAccount = accountsContainsIBAN(fileAccounts, lineValues[1]);
+                if (lineValues.length > 1 && !lineValues[0].toLowerCase().contains("account")) {
+                    Optional<Account> optionalExistingAccount = accountsContainsIBAN(fileAccounts, lineValues[1]);
 
-                if(optionalExistingAccount.isPresent()) {
-                    Payment payment = readPayment(lineValues);
-                    Account account = optionalExistingAccount.get();
-                    account.getPayments().add(payment);
-                }else{
-                    Account account = readAccount(lineValues);
-                    fileAccounts.add(account);
+                    if (optionalExistingAccount.isPresent()) {
+                        Payment payment = readPayment(lineValues);
+                        Account account = optionalExistingAccount.get();
+                        account.getPayments().add(payment);
+                    } else {
+                        Account account = readAccount(lineValues);
+                        fileAccounts.add(account);
+                    }
                 }
                 line = reader.readLine();
             }
 
-        }catch(IOException ex) {
+        } catch (IOException ex) {
             ex.printStackTrace();
         }
         return fileAccounts;
     }
 
-    private static Optional<Account> accountsContainsIBAN(Collection<Account> accountsCollection, String IBAN){
+    private static Optional<Account> accountsContainsIBAN(Collection<Account> accountsCollection, String IBAN) {
         return accountsCollection.stream()
                 .filter(account -> account.getIBAN().equals(IBAN))
                 .findFirst();
